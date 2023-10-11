@@ -1,0 +1,12 @@
+{
+  "name": "sending-network-requests",
+  "version": "1.0.0",
+  "description": "boiler plate for learning to make network requests from the browser",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "webpack": "^5.88.2",
+    "webpack-cli": "^5.1.4"
+  }
+}
