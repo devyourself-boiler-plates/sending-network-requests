@@ -1,29 +1,37 @@
 import axios from "axios";
 
-async function pokemon() {
-  let currentRow;
-  for (let i = 1; i <= 150; i++) {
-    // add a new row of sprites if current row is full
-    if ((i-1)%10 === 0) {
-      currentRow = document.createElement("div");
-      document.body.appendChild(currentRow);
+const MassachusettsCoordinates = [42.4072, -71.3824];
+const MassachusettsLocationCode = "US-MA"
+
+async function eBirds() {
+  // getting data from the eBirds API
+  const birds = await axios.get(`https://api.ebird.org/v2/data/obs/${MassachusettsLocationCode}/recent`, {
+    headers: {
+      "X-eBirdApiToken": "mclcf7614qq8"
     }
+  });
 
-    // add a sprite to the current row
-    const sprite = document.createElement("img");
-    currentRow.appendChild(sprite);
+  // ensure the leaflet map's height is set (as per the docs)
+  const mapDiv = document.getElementById("map");
+  mapDiv.style.height = "500px";
 
-    // finally, set the src for this sprite, once the API responds to us, whenever that happens
+  // initializing the map with a view
+  const map = L.map('map').setView(MassachusettsCoordinates, 8);
+  // applying street map tiles to be placed on the map (this is what makes the map look like a map)
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+  }).addTo(map);
 
-    // Concurrent version
-    axios.get("https://pokeapi.co/api/v2/pokemon/" + i).then(response => {
-      sprite.src = response.data.sprites.front_default;
-    });
-    
-    // Sequential version
-    const pokemonData = await axios.get("https://pokeapi.co/api/v2/pokemon/" + i);
-    sprite.src = pokemonData.data.sprites.front_default;
-  }
+  // for each bird sighting returned by the eBird API, add a marker to the map, then bind a popup to that marker so you can click and see what the bird was
+  birds.data.map(birdSighting => {
+    // this is how to get use the `lat`/`lng` properties on the bird sighting data structure to put the marker in the right place
+    const point = L.marker([birdSighting.lat, birdSighting.lng]).addTo(map);
+    // this adds the popup to the marker, with the name of the sighted bird in it
+    point.bindPopup(birdSighting.comName).openPopup();
+  });
+
+  // this sets the view back to the center of the original region, rather than to the most recently added marker on the map.
+  map.setView(MassachusettsCoordinates, 8);
 }
 
-pokemon();
+eBirds()
